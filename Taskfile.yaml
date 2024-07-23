@@ -1,0 +1,25 @@
+version: 3
+
+env:
+  PATH_SCRIPT: script/main/main.go
+  PATH_MAIN: cmd/main/main.go
+  PATH_DEV_CFG: config/dev.yaml
+  PATH_PROD_CFG: config/prod.yaml
+  PATH_LOCAL_CFG: config/local.yaml
+  PATH_TEST_CFG: config/test.yaml
+
+tasks:
+  dev:
+    cmds:
+      - go run -race $PATH_MAIN
+  test:
+    cmds:
+      - go test -race ./...
+  cover:
+    cmds:
+      - go test -race -v -coverpkg=./... -coverprofile=c.out ./...
+      - go tool cover -html="c.out"
+      - rm c.out
+  script:
+    cmds:
+      - go run $PATH_SCRIPT

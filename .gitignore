@@ -1,0 +1,7 @@
+.idea
+.vscode
+log_folder
+dev.yaml
+prod.yaml
+local.yaml
+test.yaml
