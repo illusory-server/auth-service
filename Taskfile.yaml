@@ -11,7 +11,7 @@ env:
 tasks:
   dev:
     cmds:
-      - go run -race $PATH_MAIN
+      - CONFIG_PATH=$PATH_DEV_CFG go run -race $PATH_MAIN
   test:
     cmds:
       - go test -race ./...
