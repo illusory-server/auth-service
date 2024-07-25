@@ -3,18 +3,40 @@ package cmd
 import (
 	"context"
 	"github.com/illusory-server/auth-service/cmd/app"
-	"net/http"
+	"github.com/illusory-server/auth-service/cmd/interactor"
+	authv1 "github.com/illusory-server/auth-service/gen/auth"
+	grpcv1AuthService "github.com/illusory-server/auth-service/internal/transport/handlers/grpcv1/grpcv1_auth_service"
+	"google.golang.org/grpc"
+	"net"
 )
 
 func RunServer(ctx context.Context, app *app.App, errCh chan<- error) {
+	lis, err := net.Listen("tcp", app.Cfg.Server.Address)
+	if err != nil {
+		errCh <- err
+		return
+	}
+	grpcServer := grpc.NewServer(
+	//grpc.UnaryInterceptor(logger.LoggingInterceptor),
+	)
+	dependencies := interactor.New(app.Cfg, app.Logger, app.PSQL)
+	authv1.RegisterAuthServiceServer(grpcServer, grpcv1AuthService.New(&grpcv1AuthService.Dependencies{
+		UserRepository: dependencies.UserRepository,
+		AuthUseCase:    dependencies.AuthUseCase,
+		Log:            app.Logger,
+	}))
+
 	ch := make(chan error)
 	go func() {
 		app.Logger.Info(ctx).
-			Str("port", "5500").
+			Str("address", app.Cfg.Server.Address).
 			Msg("Server starting...")
-		err := http.ListenAndServe(":5500", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.Write([]byte("work"))
-		}))
+		err := grpcServer.Serve(lis)
+		if err != nil {
+			app.Logger.Error(ctx).
+				Err(err).
+				Msg("grpc server error")
+		}
 		ch <- err
 	}()
 	select {

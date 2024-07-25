@@ -2,10 +2,10 @@ package userService
 
 import (
 	"context"
-	appDto "github.com/OddEer0/mirage-auth-service/internal/app/app_dto"
-	"github.com/OddEer0/mirage-auth-service/internal/domain"
-	"github.com/OddEer0/mirage-auth-service/internal/domain/model"
-	"github.com/OddEer0/mirage-auth-service/internal/domain/repository"
+	appDto "github.com/illusory-server/auth-service/internal/app/app_dto"
+	"github.com/illusory-server/auth-service/internal/domain"
+	"github.com/illusory-server/auth-service/internal/domain/model"
+	"github.com/illusory-server/auth-service/internal/domain/repository"
 )
 
 type (

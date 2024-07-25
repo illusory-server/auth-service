@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/illusory-server/auth-service/internal/domain"
+	"github.com/illusory-server/auth-service/internal/domain/sql"
 	"github.com/illusory-server/auth-service/internal/infra/config"
 )
 
@@ -22,6 +23,7 @@ type (
 	App struct {
 		Cfg     *config.Config
 		Logger  domain.Logger
+		PSQL    sql.QueryExecutor
 		runners []RunnerFunc
 		jobs    []job
 	}

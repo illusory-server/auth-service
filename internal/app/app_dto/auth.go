@@ -1,8 +1,10 @@
 package appDto
 
+import "github.com/illusory-server/auth-service/internal/domain"
+
 type (
 	PureUser struct {
-		Id        string
+		Id        domain.Id
 		Login     string
 		Email     string
 		IsBanned  bool
