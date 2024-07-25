@@ -8,6 +8,8 @@ env:
   PATH_LOCAL_CFG: config/local.yaml
   PATH_TEST_CFG: config/test.yaml
 
+  PATH_MIGRATION_PSQL_DIR: migration/psql
+
   PROTO_SRC: 'proto'
   PROTO_FILES: 'proto/**/*.proto'
   PROTO_OUT: './gen/'
@@ -30,3 +32,10 @@ tasks:
   proto:
     cmds:
       - protoc -I $PROTO_SRC $PROTO_FILES --go_out=$PROTO_OUT --go_opt=paths=source_relative --go-grpc_out=$PROTO_OUT --go-grpc_opt=paths=source_relative
+  migration:
+    # goose -dir migration/pgx_goose_migration create name_file psql
+    cmds:
+      - export GOOSE_DRIVER=postgres
+      - export GOOSE_DBSTRING=postgresql://eer0:hahaha1234@localhost:5001/illusory-auth-service?sslmode=disable
+      - export GOOSE_MIGRATION_DIR=$PATH_MIGRATION_PSQL_DIR
+      - goose up
