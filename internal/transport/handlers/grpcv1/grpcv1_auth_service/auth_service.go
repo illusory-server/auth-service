@@ -1,10 +1,10 @@
 package grpcv1AuthService
 
 import (
-	authUseCase "github.com/OddEer0/mirage-auth-service/internal/app/usecases/auth_usecase"
-	"github.com/OddEer0/mirage-auth-service/internal/domain"
-	"github.com/OddEer0/mirage-auth-service/internal/domain/repository"
-	authv1 "github.com/OddEer0/mirage-src/protogen/mirage_auth_service"
+	authv1 "github.com/illusory-server/auth-service/gen/auth"
+	authUseCase "github.com/illusory-server/auth-service/internal/app/usecases/auth_usecase"
+	"github.com/illusory-server/auth-service/internal/domain"
+	"github.com/illusory-server/auth-service/internal/domain/repository"
 )
 
 type (
