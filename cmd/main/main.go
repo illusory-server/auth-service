@@ -1,21 +1,22 @@
 package main
 
 import (
-	"context"
-	"github.com/illusory-server/auth-service/internal/infra/config"
-	"github.com/illusory-server/auth-service/internal/infra/logger"
-	"github.com/illusory-server/auth-service/internal/infra/tracing"
+	"github.com/illusory-server/auth-service/cmd"
+	"github.com/illusory-server/auth-service/cmd/app"
+	"github.com/rs/zerolog/log"
+	"os"
 )
 
 func main() {
-	cfg := config.MustLoad()
-	log := logger.MustLoad(cfg.Env)
-	ctx := context.Background()
-	ctx = tracing.AddRequestId(ctx)
-	log.Info(ctx).
-		Msg("config and load initialized")
-	log.Error(ctx).
-		Msg("config and load initialized")
-	log.Error(ctx).
-		Msg("config and load initialized")
+	application := app.Init()
+	application.RegisterRunners(cmd.RunServer)
+	err := application.Run()
+
+	if err != nil {
+		log.Info().
+			Err(err).
+			Msg("app runner error")
+		os.Exit(1)
+		return
+	}
 }
