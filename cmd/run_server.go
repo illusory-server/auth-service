@@ -5,6 +5,7 @@ import (
 	"github.com/illusory-server/auth-service/cmd/app"
 	"github.com/illusory-server/auth-service/cmd/interactor"
 	authv1 "github.com/illusory-server/auth-service/gen/auth"
+	"github.com/illusory-server/auth-service/internal/infra/logger"
 	grpcv1AuthService "github.com/illusory-server/auth-service/internal/transport/handlers/grpcv1/grpcv1_auth_service"
 	"google.golang.org/grpc"
 	"net"
@@ -17,7 +18,7 @@ func RunServer(ctx context.Context, app *app.App, errCh chan<- error) {
 		return
 	}
 	grpcServer := grpc.NewServer(
-	//grpc.UnaryInterceptor(logger.LoggingInterceptor),
+		grpc.ChainUnaryInterceptor(logger.LoggingInterceptor(app.Logger)),
 	)
 	dependencies := interactor.New(app.Cfg, app.Logger, app.PSQL)
 	authv1.RegisterAuthServiceServer(grpcServer, grpcv1AuthService.New(&grpcv1AuthService.Dependencies{

@@ -29,10 +29,11 @@ func AddRequestIdGrpc(ctx context.Context) context.Context {
 	header, ok := md[RequestIdKey]
 	if !ok || len(header) == 0 {
 		reqId = xid.New().String()
-	}
-	reqId = header[0]
-	if reqId == "" {
-		reqId = xid.New().String()
+	} else {
+		reqId = header[0]
+		if reqId == "" {
+			reqId = xid.New().String()
+		}
 	}
 	ctx = context.WithValue(ctx, RequestIdKey, reqId)
 	return ctx

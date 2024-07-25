@@ -34,14 +34,14 @@ func (app *App) Run() (err error) {
 	defer cancel()
 	errCh := make(chan error, len(app.runners))
 	for _, runner := range app.runners {
-		go func() {
+		go func(errCh chan<- error) {
 			defer func() {
 				if r := recover(); r != nil {
 					errCh <- errors.New("panic")
 				}
 			}()
 			runner(ctx, app, errCh)
-		}()
+		}(errCh)
 	}
 	app.jobsRun(ctx)
 	err = <-errCh

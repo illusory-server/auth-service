@@ -13,6 +13,6 @@ func (r requestIdHook) Run(e *zerolog.Event, _ zerolog.Level, _ string) {
 	ctx := e.GetCtx()
 	requestId := tracing.GetRequestId(ctx)
 	if requestId != "" {
-		e.Str(r.reqId, requestId)
+		e.Str("request_id", requestId)
 	}
 }

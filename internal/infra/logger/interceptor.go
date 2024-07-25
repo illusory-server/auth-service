@@ -20,11 +20,9 @@ func LoggingInterceptor(log domain.Logger) grpc.UnaryServerInterceptor {
 
 		result, err := handler(ctx, req)
 
-		diff := time.Now().Sub(t)
 		log.Info(ctx).
 			Str("method", info.FullMethod).
 			Interface("result", result).
-			Time("time", time.Time{}.Add(diff)).
 			Msg("finished gRPC call")
 		return result, err
 	}
