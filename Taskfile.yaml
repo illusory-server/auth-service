@@ -8,6 +8,10 @@ env:
   PATH_LOCAL_CFG: config/local.yaml
   PATH_TEST_CFG: config/test.yaml
 
+  PROTO_SRC: 'proto'
+  PROTO_FILES: 'proto/**/*.proto'
+  PROTO_OUT: './gen/'
+
 tasks:
   dev:
     cmds:
@@ -23,3 +27,6 @@ tasks:
   script:
     cmds:
       - go run $PATH_SCRIPT
+  proto:
+    cmds:
+      - protoc -I $PROTO_SRC $PROTO_FILES --go_out=$PROTO_OUT --go_opt=paths=source_relative --go-grpc_out=$PROTO_OUT --go-grpc_opt=paths=source_relative
