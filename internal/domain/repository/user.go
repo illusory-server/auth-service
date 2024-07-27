@@ -12,7 +12,8 @@ type UserRepository interface {
 
 	GetById(context.Context, domain.Id) (*model.User, error)
 	GetByLogin(context.Context, string) (*model.User, error)
-	GetByQuery(context.Context, *query.PaginationQuery) (*model.User, error)
+	GetByQuery(context.Context, *query.PaginationQuery) ([]*model.User, error)
+	GetPageCount(ctx context.Context, limit uint) (uint, error)
 
 	UpdateById(context.Context, *model.User) (*model.User, error)
 	UpdateRoleById(ctx context.Context, id string, role string) (*model.User, error)
