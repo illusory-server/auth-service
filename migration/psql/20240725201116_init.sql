@@ -11,14 +11,14 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 CREATE TABLE IF NOT EXISTS jwt_tokens (
-    id VARCHAR(50) PRIMARY KEY,
+    id VARCHAR(50) PRIMARY KEY REFERENCES users(id),
     value VARCHAR(512) UNIQUE NOT NULL,
     updated_at timestamp NOT NULL,
     created_at TIMESTAMP NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS user_activate (
-    id VARCHAR(50) PRIMARY KEY,
+    id VARCHAR(50) PRIMARY KEY REFERENCES users(id),
     is_activate BOOLEAN NOT NULL,
     link VARCHAR(1024) NOT NULL,
     updated_at timestamp NOT NULL,
@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS user_activate (
 );
 
 CREATE TABLE IF NOT EXISTS user_ban (
-    id VARCHAR(50) PRIMARY KEY,
+    id VARCHAR(50) PRIMARY KEY REFERENCES users(id),
     is_banned BOOLEAN NOT NULL,
     ban_reason VARCHAR(1024),
     updated_at timestamp NOT NULL,

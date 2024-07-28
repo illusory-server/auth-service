@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 	"github.com/illusory-server/auth-service/internal/domain"
-	"github.com/illusory-server/auth-service/internal/domain/sql"
 	"github.com/illusory-server/auth-service/internal/infra/config"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type (
@@ -23,7 +23,7 @@ type (
 	App struct {
 		Cfg     *config.Config
 		Logger  domain.Logger
-		PSQL    sql.QueryExecutor
+		PSQL    *pgxpool.Pool
 		runners []RunnerFunc
 		jobs    []job
 	}

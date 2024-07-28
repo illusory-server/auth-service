@@ -23,18 +23,20 @@ type (
 	}
 
 	useCase struct {
-		log            domain.Logger
-		userService    userService.Service
-		userRepository repository.UserRepository
-		tokenService   tokenService.Service
+		log             domain.Logger
+		userService     userService.Service
+		userRepository  repository.UserRepository
+		tokenService    tokenService.Service
+		tokenRepository repository.TokenRepository
 	}
 )
 
-func New(logger domain.Logger, userServ userService.Service, userRepo repository.UserRepository, tokenServ tokenService.Service) UseCase {
+func New(logger domain.Logger, userServ userService.Service, userRepo repository.UserRepository, tokenServ tokenService.Service, tokenRepo repository.TokenRepository) UseCase {
 	return &useCase{
-		log:            logger,
-		userService:    userServ,
-		userRepository: userRepo,
-		tokenService:   tokenServ,
+		log:             logger,
+		userService:     userServ,
+		userRepository:  userRepo,
+		tokenService:    tokenServ,
+		tokenRepository: tokenRepo,
 	}
 }

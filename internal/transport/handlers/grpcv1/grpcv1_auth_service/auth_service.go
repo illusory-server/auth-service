@@ -5,7 +5,10 @@ import (
 	authUseCase "github.com/illusory-server/auth-service/internal/app/usecases/auth_usecase"
 	"github.com/illusory-server/auth-service/internal/domain"
 	"github.com/illusory-server/auth-service/internal/domain/repository"
+	grpcMapper "github.com/illusory-server/auth-service/internal/transport/mapper/grpc_mapper"
 )
+
+var authMapper = grpcMapper.AuthMapper{}
 
 type (
 	Dependencies struct {

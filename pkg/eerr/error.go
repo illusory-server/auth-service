@@ -28,8 +28,8 @@ func Wrap(err error, msg string) error {
 	}
 	eErr, ok := err.(*Error)
 	if ok {
-		eErr.err = errors.Wrap(eErr, msg)
-		return eErr
+		eErr.err = errors.Wrap(eErr.err, msg)
+		return err
 	}
 	return &Error{
 		Code: ErrInternal,

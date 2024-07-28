@@ -8,6 +8,9 @@ import (
 	"github.com/illusory-server/auth-service/internal/domain/repository"
 	"github.com/illusory-server/auth-service/internal/domain/sql"
 	"github.com/illusory-server/auth-service/internal/infra/config"
+	"github.com/illusory-server/auth-service/internal/infra/storage/psql"
+	psqlTokenRepository "github.com/illusory-server/auth-service/internal/infra/storage/psql/psql_token_repository"
+	psqlUserRepository "github.com/illusory-server/auth-service/internal/infra/storage/psql/psql_user_repository"
 )
 
 type Dependencies struct {
@@ -21,12 +24,11 @@ type Dependencies struct {
 
 func New(cfg *config.Config, log domain.Logger, db sql.QueryExecutor) *Dependencies {
 	// postgres Repository initialize
-	//pgUserRepo := pgUserRepository.New(log, db)
-	//pgJwtTokenRepo := postgresRepository.NewTokenRepository(log, db)
+	txController := psql.PgxTransactionController{}
+	pgUserRepo := psqlUserRepository.New(db, log, txController)
+	pgTokenRepo := psqlTokenRepository.New(db, log, txController)
 	//pgUserActivateRepo := postgresRepository.NewUserActivateRepository(log, db)
 	var (
-		pgUserRepo     repository.UserRepository
-		pgTokenRepo    repository.TokenRepository
 		pgActivateRepo repository.ActivateRepository
 	)
 
@@ -35,7 +37,7 @@ func New(cfg *config.Config, log domain.Logger, db sql.QueryExecutor) *Dependenc
 	tokenServ := tokenService.New(log, cfg, pgTokenRepo)
 
 	// app use case initialize
-	authUCase := authUseCase.New(log, userServ, pgUserRepo, tokenServ)
+	authUCase := authUseCase.New(log, userServ, pgUserRepo, tokenServ, pgTokenRepo)
 
 	return &Dependencies{
 		UserRepository:     pgUserRepo,

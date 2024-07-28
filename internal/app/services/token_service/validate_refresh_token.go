@@ -4,38 +4,44 @@ import (
 	"context"
 	"github.com/golang-jwt/jwt"
 	"github.com/illusory-server/auth-service/internal/domain"
+	"github.com/illusory-server/auth-service/pkg/eerr"
+	"github.com/pkg/errors"
 )
 
 func (s *service) ValidateRefreshToken(ctx context.Context, refreshToken string) (*JwtUserData, error) {
-	//cfg := s.cfg
-	//token, err := jwt.ParseWithClaims(refreshToken, &CustomClaims{}, func(token *jwt.Token) (interface{}, error) {
-	//	return []byte(cfg.Secret.ApiKey), nil
-	//})
-	//if err != nil {
-	//	var jwtErr *jwt.ValidationError
-	//	if errors.As(err, &jwtErr) {
-	//		return nil, jwtErrHandle(ctx, jwtErr, s.log)
-	//	}
-	//	s.log.ErrorContext(ctx, "validate jwt token error", slog.Any("cause", err), slog.String("token", refreshToken))
-	//	return nil, domain.NewErr(domain.ErrInternalCode, domain.ErrInternalMessage)
-	//}
-	//if !token.Valid {
-	//	s.log.ErrorContext(ctx, "invalid token", slog.Any("cause", err), slog.String("token", refreshToken))
-	//	return nil, domain.NewErr(domain.ErrUnauthorizedCode, domain.ErrUnauthorizedMessage)
-	//}
-	//claim := token.Claims.(*CustomClaims)
-	//return &claim.JwtUserData, nil
-	return nil, nil
+	cfg := s.cfg
+	token, err := jwt.ParseWithClaims(refreshToken, &CustomClaims{}, func(token *jwt.Token) (interface{}, error) {
+		return []byte(cfg.Secret.ApiKey), nil
+	})
+	if err != nil {
+		var jwtErr *jwt.ValidationError
+		if errors.As(err, &jwtErr) {
+			return nil, eerr.Wrap(jwtErrHandle(ctx, jwtErr, s.log, refreshToken), "[service.ValidateRefreshToken] jwt.ParseWithClaims")
+		}
+		s.log.Error(ctx).
+			Err(err).
+			Str("refresh_token", refreshToken).
+			Msg("parse refresh token failed")
+		return nil, eerr.Wrap(err, "[service.ValidateRefreshToken] jwt.ParseWithClaims")
+	}
+	if !token.Valid {
+		s.log.Error(ctx).
+			Str("refresh_token", refreshToken).
+			Msg("invalid token")
+		return nil, eerr.New(eerr.ErrUnauthorized, eerr.MsgUnauthorized)
+	}
+	claim := token.Claims.(*CustomClaims)
+	return &claim.JwtUserData, nil
 }
 
-func jwtErrHandle(ctx context.Context, jwtErr *jwt.ValidationError, log domain.Logger) error {
-	//if jwtErr.Errors&jwt.ValidationErrorMalformed != 0 {
-	//	log.ErrorContext(ctx, "uncorrected jwt token")
-	//} else if jwtErr.Errors&(jwt.ValidationErrorExpired|jwt.ValidationErrorNotValidYet) != 0 {
-	//	log.ErrorContext(ctx, "token does not work or time")
-	//} else {
-	//	log.ErrorContext(ctx, "token validate error")
-	//}
-	//return domain.NewErr(domain.ErrUnauthorizedCode, domain.ErrUnauthorizedMessage)
-	return nil
+func jwtErrHandle(ctx context.Context, jwtErr *jwt.ValidationError, log domain.Logger, token string) error {
+	eLog := log.Error(ctx).Str("refresh_token", token)
+	if jwtErr.Errors&jwt.ValidationErrorMalformed != 0 {
+		eLog.Msg("uncorrected jwt token")
+	} else if jwtErr.Errors&(jwt.ValidationErrorExpired|jwt.ValidationErrorNotValidYet) != 0 {
+		eLog.Msg("token does not work or time")
+	} else {
+		eLog.Msg("token is invalid")
+	}
+	return eerr.New(eerr.ErrUnauthorized, eerr.MsgUnauthorized)
 }
