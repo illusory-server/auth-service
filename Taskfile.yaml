@@ -15,6 +15,15 @@ env:
   PROTO_OUT: './gen/'
 
 tasks:
+  clean:
+    - rm -rf ./main
+  build:
+    cmds:
+      - go build $PATH_MAIN
+  build-dev:
+    cmds:
+      - go build $PATH_MAIN
+      - CONFIG_PATH=$PATH_DEV_CFG ./main
   dev:
     cmds:
       - CONFIG_PATH=$PATH_DEV_CFG go run -race $PATH_MAIN
@@ -36,6 +45,9 @@ tasks:
     # goose -dir migration/pgx_goose_migration create name_file psql
     cmds:
       - export GOOSE_DRIVER=postgres
-      - export GOOSE_DBSTRING=postgresql://eer0:hahaha1234@localhost:5001/illusory-auth-service?sslmode=disable
+      - export GOOSE_DBSTRING=postgresql://eer0:hahaha1234@localhost:5002/illusory-auth-service?sslmode=disable
       - export GOOSE_MIGRATION_DIR=$PATH_MIGRATION_PSQL_DIR
       - goose up
+  pprof:
+    cmds:
+      - CONFIG_PATH=$PATH_DEV_CFG go tool pprof main http://127.0.0.1:5050/debug/pprof/profile

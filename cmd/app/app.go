@@ -54,8 +54,9 @@ func (app *App) RegisterRunners(runners ...RunnerFunc) {
 
 func (app *App) RegisterJob(jobs JobFunc, opt *JobOptions) {
 	j := job{
-		fn:  jobs,
-		opt: opt,
+		fn:   jobs,
+		opt:  opt,
+		name: opt.Name,
 	}
 	app.jobs = append(app.jobs, j)
 }
