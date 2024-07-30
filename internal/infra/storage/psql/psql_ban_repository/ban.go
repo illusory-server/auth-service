@@ -21,7 +21,7 @@ func (b *banRepository) getQuery(ctx context.Context) sql.QueryExecutor {
 	return b.db
 }
 
-func NewBanRepository(log domain.Logger, tx sql.TransactionController, db sql.QueryExecutor) repository.BanRepository {
+func New(log domain.Logger, tx sql.TransactionController, db sql.QueryExecutor) repository.BanRepository {
 	return &banRepository{
 		log: log,
 		tx:  tx,
