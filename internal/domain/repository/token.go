@@ -9,7 +9,7 @@ import (
 type TokenRepository interface {
 	Create(ctx context.Context, id domain.Id, token string) (*model.Token, error)
 
-	GetById(ctx context.Context, id string) (*model.Token, error)
+	GetById(ctx context.Context, id domain.Id) (*model.Token, error)
 
 	DeleteById(ctx context.Context, id domain.Id) error
 	DeleteByValue(ctx context.Context, value string) error

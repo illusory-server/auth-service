@@ -10,7 +10,7 @@ func (u *tokenRepository) HasById(ctx context.Context, id domain.Id) (bool, erro
 	db := u.getQuery(ctx)
 
 	var exists bool
-	err := db.QueryRow(ctx, HasById, id).Scan(&exists)
+	err := db.QueryRow(ctx, HasByIdQuery, id).Scan(&exists)
 	if err != nil {
 		u.log.Error(ctx).
 			Err(err).
@@ -27,7 +27,7 @@ func (u *tokenRepository) HasByValue(ctx context.Context, token string) (bool, e
 	db := u.getQuery(ctx)
 
 	var exists bool
-	err := db.QueryRow(ctx, HasByValue, token).Scan(&exists)
+	err := db.QueryRow(ctx, HasByValueQuery, token).Scan(&exists)
 	if err != nil {
 		u.log.Error(ctx).
 			Err(err).
