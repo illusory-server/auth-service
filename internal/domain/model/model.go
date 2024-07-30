@@ -35,5 +35,7 @@ type (
 		Id        domain.Id `json:"id"`
 		IsBanned  bool      `json:"is_banned"`
 		BanReason string    `json:"ban_reason"`
+		UpdatedAt time.Time `json:"updated_at"`
+		CreatedAt time.Time `json:"created_at"`
 	}
 )
