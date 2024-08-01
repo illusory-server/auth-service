@@ -3,11 +3,12 @@ package tokenService
 import (
 	"context"
 	"github.com/golang-jwt/jwt"
+	appDto "github.com/illusory-server/auth-service/internal/app/app_dto"
 	"github.com/illusory-server/auth-service/pkg/eerr"
 	"time"
 )
 
-func (s *service) Generate(_ context.Context, data JwtUserData) (*JwtTokens, error) {
+func (s *service) Generate(_ context.Context, data JwtUserData) (*appDto.JwtTokens, error) {
 	cfg := s.cfg
 	accessDuration, err := time.ParseDuration(cfg.Secret.AccessTokenTime)
 	if err != nil {
@@ -35,7 +36,7 @@ func (s *service) Generate(_ context.Context, data JwtUserData) (*JwtTokens, err
 	if err != nil {
 		return nil, eerr.Wrap(err, "[service.Generate] jwt.SignedString(2)")
 	}
-	return &JwtTokens{
+	return &appDto.JwtTokens{
 		AccessToken:  accessTokenString,
 		RefreshToken: refreshTokenString,
 	}, nil

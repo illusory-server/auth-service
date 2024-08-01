@@ -4,18 +4,13 @@ import "github.com/illusory-server/auth-service/internal/domain"
 
 type (
 	PureUser struct {
-		Id        domain.Id
-		Login     string
-		Email     string
-		IsBanned  bool
-		BanReason *string
-		Role      string
-	}
-
-	RegistrationData struct {
-		Login    string
-		Password string
-		Email    string
+		Id         domain.Id
+		Login      string
+		Email      string
+		IsBanned   bool
+		BanReason  *string
+		IsActivate bool
+		Role       string
 	}
 
 	LoginData struct {
@@ -23,8 +18,8 @@ type (
 		Password string
 	}
 
-	SaveTokenServiceDto struct {
-		Id           string
-		RefreshToken string
+	JwtTokens struct {
+		AccessToken  string `json:"access_token"`
+		RefreshToken string `json:"refresh_token"`
 	}
 )

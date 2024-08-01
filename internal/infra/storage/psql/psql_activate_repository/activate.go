@@ -21,7 +21,7 @@ func (a *activateRepository) getQuery(ctx context.Context) sql.QueryExecutor {
 	return a.db
 }
 
-func New(log domain.Logger, tx sql.TransactionController, db sql.QueryExecutor) repository.ActivateRepository {
+func New(db sql.QueryExecutor, log domain.Logger, tx sql.TransactionController) repository.ActivateRepository {
 	return &activateRepository{
 		log: log,
 		tx:  tx,

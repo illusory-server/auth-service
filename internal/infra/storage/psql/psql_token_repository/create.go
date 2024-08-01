@@ -22,8 +22,8 @@ func (u *tokenRepository) Create(ctx context.Context, id domain.Id, token string
 		u.log.Error(ctx).
 			Err(err).
 			Str("id", string(id)).
-			Str("id", token).
-			Msg("Failed to create token")
+			Str("token", token).
+			Msg("failed to create token")
 
 		return nil, eerr.Wrap(err, "[tokenRepository] db.Exec")
 	}

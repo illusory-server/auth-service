@@ -17,7 +17,7 @@ const (
 type PgxTransaction struct {
 	Conn         *pgxpool.Pool
 	TxController sql.TransactionController
-	log          domain.Logger
+	Log          domain.Logger
 }
 
 type PgxTransactionController struct{}
@@ -36,7 +36,7 @@ func (t PgxTransactionController) ExtractTransaction(ctx context.Context) sql.Qu
 func (p *PgxTransaction) WithinTransaction(ctx context.Context, callback func(context.Context) error) error {
 	tx, err := p.Conn.Begin(ctx)
 	if err != nil {
-		p.log.Error(ctx).
+		p.Log.Error(ctx).
 			Msg("starting psql transaction failed")
 
 		return eerr.Wrap(err, "[PgxTransaction.WithinTransaction] Conn.Begin")
@@ -46,11 +46,11 @@ func (p *PgxTransaction) WithinTransaction(ctx context.Context, callback func(co
 	if err != nil {
 		errLoc := tx.Rollback(ctx)
 		if errLoc != nil {
-			p.log.Error(ctx).
+			p.Log.Error(ctx).
 				Msg("rolling back psql transaction failed")
 			return eerr.Wrap(err, "[PgxTransaction.WithinTransaction] tx.Rollback(1)")
 		}
-		p.log.Info(ctx).
+		p.Log.Info(ctx).
 			Msg("rolling back psql transaction")
 		return eerr.Wrap(err, "[PgxTransaction.WithinTransaction] callback")
 	}
@@ -59,15 +59,15 @@ func (p *PgxTransaction) WithinTransaction(ctx context.Context, callback func(co
 	if err != nil {
 		err := tx.Rollback(ctx)
 		if err != nil {
-			p.log.Error(ctx).
+			p.Log.Error(ctx).
 				Msg("rolling back psql transaction failed")
 			return eerr.Wrap(err, "[PgxTransaction.WithinTransaction] tx.Rollback(2)")
 		}
-		p.log.Error(ctx).
+		p.Log.Error(ctx).
 			Msg("commit psql transaction failed")
 		return err
 	}
-	p.log.Info(ctx).
+	p.Log.Info(ctx).
 		Msg("commit psql transaction succeeded")
 	return nil
 }

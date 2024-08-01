@@ -14,10 +14,18 @@ const LoginOrPasswordIncorrect = "incorrect login or password"
 
 func (u *useCase) Login(ctx context.Context, data *appDto.LoginData) (*AuthResult, error) {
 	has, err := u.userRepository.HasByLogin(ctx, data.Login)
-	if err != nil || !has {
+	if err != nil {
 		u.log.Error(ctx).
 			Err(err).
-			Interface("data", data).
+			Str("login", data.Login).
+			Msg("failed to check if user exists")
+
+		return nil, eerr.Wrap(err, "[useCase.Login] userRepository.HasByLogin")
+	}
+	if !has {
+		u.log.Warn(ctx).
+			Err(err).
+			Str("login", data.Login).
 			Msg("failed to check if user exists")
 
 		return nil, eerr.New(eerr.ErrForbidden, LoginOrPasswordIncorrect)
@@ -27,17 +35,17 @@ func (u *useCase) Login(ctx context.Context, data *appDto.LoginData) (*AuthResul
 	if err != nil {
 		u.log.Error(ctx).
 			Err(err).
-			Interface("data", data).
+			Str("login", data.Login).
 			Msg("failed get user by login")
 
 		return nil, eerr.Wrap(err, "[useCase.Login] userRepository.GetByLogin")
 	}
 	isEqualPassword := bcrypt.CompareHashAndPassword([]byte(userDb.Password), []byte(data.Password))
 	if isEqualPassword != nil {
-		u.log.Error(ctx).
+		u.log.Warn(ctx).
 			Err(err).
-			Interface("data", data).
-			Msg("failed to check if user exists")
+			Str("password", data.Password).
+			Msg("compare password error")
 
 		return nil, eerr.New(eerr.ErrForbidden, LoginOrPasswordIncorrect)
 	}
@@ -45,7 +53,8 @@ func (u *useCase) Login(ctx context.Context, data *appDto.LoginData) (*AuthResul
 	if err != nil {
 		u.log.Error(ctx).
 			Err(err).
-			Interface("data", data).
+			Str("id", string(userDb.Id)).
+			Str("token", tokens.RefreshToken).
 			Msg("cannot generate tokens")
 
 		return nil, eerr.Wrap(err, "[useCase.Login] tokenService.Generate")
@@ -54,7 +63,8 @@ func (u *useCase) Login(ctx context.Context, data *appDto.LoginData) (*AuthResul
 	if err != nil {
 		u.log.Error(ctx).
 			Err(err).
-			Interface("data", data).
+			Str("id", string(userDb.Id)).
+			Str("token", tokens.RefreshToken).
 			Msg("cannot save tokens")
 
 		return nil, eerr.Wrap(err, "[useCase.Login] tokenRepository.Save")

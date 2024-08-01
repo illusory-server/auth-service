@@ -22,7 +22,11 @@ func RunServer(ctx context.Context, app *app.App, errCh chan<- error) {
 	grpcServer := grpc.NewServer(
 		grpc.ChainUnaryInterceptor(interceptors.RequestMetricsInterceptor, psql.PingUnaryInterceptor(app.PSQL, app.Logger), logger.LoggingInterceptor(app.Logger)),
 	)
-	dependencies := interactor.New(app.Cfg, app.Logger, app.PSQL)
+
+	txController := psql.PgxTransactionController{}
+	tx := &psql.PgxTransaction{Conn: app.PSQL, Log: app.Logger, TxController: txController}
+
+	dependencies := interactor.New(app.Cfg, app.Logger, app.PSQL, tx, txController)
 	authv1.RegisterAuthServiceServer(grpcServer, grpcv1AuthService.New(&grpcv1AuthService.Dependencies{
 		UserRepository: dependencies.UserRepository,
 		AuthUseCase:    dependencies.AuthUseCase,

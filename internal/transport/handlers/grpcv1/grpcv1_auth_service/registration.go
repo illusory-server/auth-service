@@ -8,7 +8,7 @@ import (
 )
 
 func (a *AuthServiceServer) Registration(ctx context.Context, data *authv1.RegistrationRequest) (*authv1.AuthResponse, error) {
-	authRes, err := a.authUseCase.Registration(ctx, &appDto.RegistrationData{
+	authRes, err := a.authUseCase.Registration(ctx, &appDto.CreateUser{
 		Login:    data.Login,
 		Password: data.Password,
 		Email:    data.Email,

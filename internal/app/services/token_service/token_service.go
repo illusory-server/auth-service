@@ -3,17 +3,13 @@ package tokenService
 import (
 	"context"
 	"github.com/golang-jwt/jwt"
+	appDto "github.com/illusory-server/auth-service/internal/app/app_dto"
 	"github.com/illusory-server/auth-service/internal/domain"
 	"github.com/illusory-server/auth-service/internal/domain/repository"
 	"github.com/illusory-server/auth-service/internal/infra/config"
 )
 
 type (
-	JwtTokens struct {
-		AccessToken  string `json:"access_token"`
-		RefreshToken string `json:"refresh_token"`
-	}
-
 	JwtUserData struct {
 		Id   domain.Id `json:"id"`
 		Role string    `json:"role"`
@@ -25,7 +21,7 @@ type (
 	}
 
 	Service interface {
-		Generate(ctx context.Context, data JwtUserData) (*JwtTokens, error)
+		Generate(ctx context.Context, data JwtUserData) (*appDto.JwtTokens, error)
 		ValidateRefreshToken(ctx context.Context, refreshToken string) (*JwtUserData, error)
 	}
 

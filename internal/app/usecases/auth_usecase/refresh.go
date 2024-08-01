@@ -17,7 +17,7 @@ func (u *useCase) Refresh(ctx context.Context, refreshToken string) (*AuthResult
 
 	jwtUserData, err := u.tokenService.ValidateRefreshToken(ctx, refreshToken)
 	if err != nil {
-		u.log.Error(ctx).
+		u.log.Warn(ctx).
 			Err(err).
 			Str("refresh_token", refreshToken).
 			Msg("invalid refresh token")
@@ -33,7 +33,7 @@ func (u *useCase) Refresh(ctx context.Context, refreshToken string) (*AuthResult
 		return nil, eerr.Wrap(err, "[useCase] tokenRepository.HasByValue")
 	}
 	if !has {
-		u.log.Error(ctx).
+		u.log.Warn(ctx).
 			Str("refresh_token", refreshToken).
 			Msg("token not found")
 
@@ -44,7 +44,7 @@ func (u *useCase) Refresh(ctx context.Context, refreshToken string) (*AuthResult
 		u.log.Error(ctx).
 			Err(err).
 			Str("id", string(jwtUserData.Id)).
-			Msg("get user error")
+			Msg("get user_factory error")
 
 		return nil, eerr.Wrap(err, "[useCase] userRepository.GetById")
 	}
