@@ -23,6 +23,7 @@ type (
 	Service interface {
 		Generate(ctx context.Context, data JwtUserData) (*appDto.JwtTokens, error)
 		ValidateRefreshToken(ctx context.Context, refreshToken string) (*JwtUserData, error)
+		ValidateAccessToken(ctx context.Context, accessToken string) (*JwtUserData, error)
 	}
 
 	service struct {

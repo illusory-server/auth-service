@@ -11,7 +11,7 @@ import (
 func (s *service) ValidateRefreshToken(ctx context.Context, refreshToken string) (*JwtUserData, error) {
 	cfg := s.cfg
 	token, err := jwt.ParseWithClaims(refreshToken, &CustomClaims{}, func(token *jwt.Token) (interface{}, error) {
-		return []byte(cfg.Secret.ApiKey), nil
+		return []byte(cfg.Secret.AccessApiKey), nil
 	})
 	if err != nil {
 		var jwtErr *jwt.ValidationError
@@ -30,7 +30,12 @@ func (s *service) ValidateRefreshToken(ctx context.Context, refreshToken string)
 			Msg("invalid token")
 		return nil, eerr.New(eerr.ErrUnauthorized, eerr.MsgUnauthorized)
 	}
-	claim := token.Claims.(*CustomClaims)
+	claim, ok := token.Claims.(*CustomClaims)
+	if !ok {
+		s.log.Error(ctx).
+			Str("refresh_token", refreshToken).
+			Msg("invalid token")
+	}
 	return &claim.JwtUserData, nil
 }
 

@@ -32,7 +32,8 @@ type (
 	}
 
 	Secret struct {
-		ApiKey           string `yaml:"api_key" env-defaul:"super-puper-secret-key"`
+		RefreshApiKey    string `yaml:"refresh_api_key" env-defaul:"super-puper-secret-key"`
+		AccessApiKey     string `yaml:"access_api_key" env-defaul:"super-puper-secret-key"`
 		AccessTokenTime  string `yaml:"access_token_time" env-default:"10m"`
 		RefreshTokenTime string `yaml:"refresh_token_time" env-default:"1h"`
 	}

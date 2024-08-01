@@ -28,11 +28,11 @@ func (s *service) Generate(_ context.Context, data JwtUserData) (*appDto.JwtToke
 	}
 	accessToken := jwt.NewWithClaims(jwt.SigningMethodHS256, accessClaims)
 	refreshToken := jwt.NewWithClaims(jwt.SigningMethodHS256, refreshClaims)
-	accessTokenString, err := accessToken.SignedString([]byte(cfg.Secret.ApiKey))
+	accessTokenString, err := accessToken.SignedString([]byte(cfg.Secret.AccessApiKey))
 	if err != nil {
 		return nil, eerr.Wrap(err, "[service.Generate] jwt.SignedString(1)")
 	}
-	refreshTokenString, err := refreshToken.SignedString([]byte(cfg.Secret.ApiKey))
+	refreshTokenString, err := refreshToken.SignedString([]byte(cfg.Secret.RefreshApiKey))
 	if err != nil {
 		return nil, eerr.Wrap(err, "[service.Generate] jwt.SignedString(2)")
 	}

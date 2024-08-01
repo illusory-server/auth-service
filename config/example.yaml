@@ -4,7 +4,8 @@ super_admin:
   password: "Password1234"
   email: "xdxdxd@gmail.com"
 secret:
-  api_key: "your_super_puper_auth_service_key"
+  access_api_key: "your_super_puper_auth_service_key"
+  refresh_api_key: "your_super_puper_auth_service_key"
   access_token_time: "48h"
   refresh_token_time: "128h"
 http_server:

@@ -20,6 +20,7 @@ type (
 		Login(ctx context.Context, data *appDto.LoginData) (*AuthResult, error)
 		Logout(ctx context.Context, refreshToken string) error
 		Refresh(ctx context.Context, refreshToken string) (*AuthResult, error)
+		CheckAuth(ctx context.Context, accessToken string) (*tokenService.JwtUserData, error)
 	}
 
 	useCase struct {
