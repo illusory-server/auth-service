@@ -718,8 +718,8 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type BanServiceClient interface {
-	BanUser(ctx context.Context, in *BanUser, opts ...grpc.CallOption) (*ResponseUser, error)
-	UnbanUser(ctx context.Context, in *Id, opts ...grpc.CallOption) (*ResponseUser, error)
+	BanUser(ctx context.Context, in *BanUser, opts ...grpc.CallOption) (*Empty, error)
+	UnbanUser(ctx context.Context, in *Id, opts ...grpc.CallOption) (*Empty, error)
 }
 
 type banServiceClient struct {
@@ -730,9 +730,9 @@ func NewBanServiceClient(cc grpc.ClientConnInterface) BanServiceClient {
 	return &banServiceClient{cc}
 }
 
-func (c *banServiceClient) BanUser(ctx context.Context, in *BanUser, opts ...grpc.CallOption) (*ResponseUser, error) {
+func (c *banServiceClient) BanUser(ctx context.Context, in *BanUser, opts ...grpc.CallOption) (*Empty, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ResponseUser)
+	out := new(Empty)
 	err := c.cc.Invoke(ctx, BanService_BanUser_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -740,9 +740,9 @@ func (c *banServiceClient) BanUser(ctx context.Context, in *BanUser, opts ...grp
 	return out, nil
 }
 
-func (c *banServiceClient) UnbanUser(ctx context.Context, in *Id, opts ...grpc.CallOption) (*ResponseUser, error) {
+func (c *banServiceClient) UnbanUser(ctx context.Context, in *Id, opts ...grpc.CallOption) (*Empty, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ResponseUser)
+	out := new(Empty)
 	err := c.cc.Invoke(ctx, BanService_UnbanUser_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -754,8 +754,8 @@ func (c *banServiceClient) UnbanUser(ctx context.Context, in *Id, opts ...grpc.C
 // All implementations must embed UnimplementedBanServiceServer
 // for forward compatibility
 type BanServiceServer interface {
-	BanUser(context.Context, *BanUser) (*ResponseUser, error)
-	UnbanUser(context.Context, *Id) (*ResponseUser, error)
+	BanUser(context.Context, *BanUser) (*Empty, error)
+	UnbanUser(context.Context, *Id) (*Empty, error)
 	mustEmbedUnimplementedBanServiceServer()
 }
 
@@ -763,10 +763,10 @@ type BanServiceServer interface {
 type UnimplementedBanServiceServer struct {
 }
 
-func (UnimplementedBanServiceServer) BanUser(context.Context, *BanUser) (*ResponseUser, error) {
+func (UnimplementedBanServiceServer) BanUser(context.Context, *BanUser) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method BanUser not implemented")
 }
-func (UnimplementedBanServiceServer) UnbanUser(context.Context, *Id) (*ResponseUser, error) {
+func (UnimplementedBanServiceServer) UnbanUser(context.Context, *Id) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UnbanUser not implemented")
 }
 func (UnimplementedBanServiceServer) mustEmbedUnimplementedBanServiceServer() {}

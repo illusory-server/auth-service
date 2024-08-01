@@ -134,6 +134,6 @@ service ActivateService {
 }
 
 service BanService {
-  rpc banUser(BanUser) returns(ResponseUser) {}
-  rpc unbanUser(Id) returns(ResponseUser) {}
+  rpc banUser(BanUser) returns(Empty) {}
+  rpc unbanUser(Id) returns(Empty) {}
 }
