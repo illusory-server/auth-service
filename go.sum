@@ -1,5 +1,7 @@
 github.com/BurntSushi/toml v1.2.1 h1:9F2/+DoOYIOksmaJFPw1tGFy1eDnIJXg+UHjuD8lTak=
 github.com/BurntSushi/toml v1.2.1/go.mod h1:CxXYINrC8qIiEnFrOxCa7Jy5BFHlXnUU2pbicEuybxQ=
+github.com/OddEer0/Eer0 v0.0.0-20240722235122-8d10f1b472a9 h1:AjRAYOaKS4nayuzMzr79BqXpFHXprhfsJkVYhY8DejA=
+github.com/OddEer0/Eer0 v0.0.0-20240722235122-8d10f1b472a9/go.mod h1:nRY312i3Ck7xFbGyW92fDo5CGY/bD5cW9Bx1+FutL90=
 github.com/beorn7/perks v1.0.1 h1:VlbKKnNfV8bJzeqoa4cOKqO6bYr3WgKZxO8Z16+hsOM=
 github.com/beorn7/perks v1.0.1/go.mod h1:G2ZrVWU2WbWT9wwq4/hrbKbnv/1ERSJQ0ibhJ6rlkpw=
 github.com/cespare/xxhash/v2 v2.3.0 h1:UL815xU9SqsFlibzuggzjXhog7bL6oX9BbNZnL2UFvs=

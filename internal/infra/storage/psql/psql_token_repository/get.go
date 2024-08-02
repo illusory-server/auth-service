@@ -2,9 +2,10 @@ package psqlTokenRepository
 
 import (
 	"context"
+	"github.com/OddEer0/Eer0/eerror"
 	"github.com/illusory-server/auth-service/internal/domain"
 	"github.com/illusory-server/auth-service/internal/domain/model"
-	"github.com/illusory-server/auth-service/pkg/eerr"
+	"github.com/illusory-server/auth-service/pkg/etrace"
 )
 
 func (u *tokenRepository) GetById(ctx context.Context, id domain.Id) (*model.Token, error) {
@@ -19,12 +20,16 @@ func (u *tokenRepository) GetById(ctx context.Context, id domain.Id) (*model.Tok
 	)
 
 	if err != nil {
-		u.log.Error(ctx).
-			Err(err).
-			Str("id", string(id)).
-			Msg("get token by id failed")
-
-		return nil, eerr.Wrap(err, "[tokenRepository.GetById]: db.QueryRow")
+		tr := traceTokenRepository.OfName("GetById").
+			OfCauseMethod("db.QueryRow").
+			OfCauseParams(etrace.FuncParams{
+				"id": id,
+			})
+		return nil, eerror.Err(err).
+			Code(eerror.ErrInternal).
+			Msg(eerror.MsgInternal).
+			Stack(tr).
+			Err()
 	}
 
 	return token, nil

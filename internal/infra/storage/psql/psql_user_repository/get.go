@@ -2,11 +2,11 @@ package psqlUserRepository
 
 import (
 	"context"
-	"fmt"
+	"github.com/OddEer0/Eer0/eerror"
 	"github.com/illusory-server/auth-service/internal/domain"
 	"github.com/illusory-server/auth-service/internal/domain/model"
 	"github.com/illusory-server/auth-service/internal/domain/query"
-	"github.com/illusory-server/auth-service/pkg/eerr"
+	"github.com/illusory-server/auth-service/pkg/etrace"
 	"strings"
 )
 
@@ -24,12 +24,17 @@ func (u *userRepository) GetById(ctx context.Context, id domain.Id) (*model.User
 		&user.CreatedAt,
 	)
 	if err != nil {
-		u.log.Error(ctx).
+		tr := traceUserRepository.OfName("GetById").
+			OfCauseMethod("db.QueryRow").
+			OfCauseParams(etrace.FuncParams{
+				"id": id,
+			})
+		return nil, eerror.
 			Err(err).
-			Str("id", string(id)).
-			Msg("get user by id query failed")
-
-		return nil, eerr.Wrap(err, "[userRepository.GetById] db.QueryRow")
+			Code(eerror.ErrInternal).
+			Msg(eerror.MsgInternal).
+			Stack(tr).
+			Err()
 	}
 
 	return user, nil
@@ -49,12 +54,18 @@ func (u *userRepository) GetByLogin(ctx context.Context, login string) (*model.U
 		&user.CreatedAt,
 	)
 	if err != nil {
-		u.log.Error(ctx).
-			Err(err).
-			Str("login", login).
-			Msg("get user by login query failed")
+		tr := traceUserRepository.OfName("GetByLogin").
+			OfCauseMethod("db.QueryRow").
+			OfCauseParams(etrace.FuncParams{
+				"login": login,
+			})
 
-		return nil, eerr.Wrap(err, "[userRepository.GetByLogin] db.QueryRow")
+		return nil, eerror.
+			Err(err).
+			Code(eerror.ErrInternal).
+			Msg(eerror.MsgInternal).
+			Stack(tr).
+			Err()
 	}
 
 	return user, nil
@@ -73,12 +84,17 @@ func (u *userRepository) GetByQuery(ctx context.Context, query *query.Pagination
 
 	rows, err := db.Query(ctx, queryStr.String(), query.Limit, offset)
 	if err != nil {
-		u.log.Error(ctx).
+		tr := traceUserRepository.OfName("GetByQuery").
+			OfCauseMethod("db.Query").
+			OfParams(etrace.FuncParams{
+				"query": query,
+			})
+		return nil, eerror.
 			Err(err).
-			Interface("query", query).
-			Msg("get user by query failed")
-
-		return nil, eerr.Wrap(err, "[userRepository.GetByQuery] db.Query")
+			Code(eerror.ErrInternal).
+			Msg(eerror.MsgInternal).
+			Stack(tr).
+			Err()
 	}
 	defer rows.Close()
 
@@ -95,22 +111,32 @@ func (u *userRepository) GetByQuery(ctx context.Context, query *query.Pagination
 			&user.CreatedAt,
 		)
 		if err != nil {
-			u.log.Error(ctx).
+			tr := traceUserRepository.OfName("GetByQuery").
+				OfCauseMethod("rows.Scan").
+				OfParams(etrace.FuncParams{
+					"query": query,
+				})
+			return nil, eerror.
 				Err(err).
-				Interface("query", query).
-				Msg("get user by query scan failed")
-
-			return nil, eerr.Wrap(err, "[userRepository.GetByQuery] rows.Scan")
+				Code(eerror.ErrInternal).
+				Msg(eerror.MsgInternal).
+				Stack(tr).
+				Err()
 		}
 		users = append(users, user)
 	}
 	if err := rows.Err(); err != nil {
-		u.log.Error(ctx).
+		tr := traceUserRepository.OfName("GetByQuery").
+			OfCauseMethod("rows.Err").
+			OfParams(etrace.FuncParams{
+				"query": query,
+			})
+		return nil, eerror.
 			Err(err).
-			Interface("query", query).
-			Msg("get user by query rows failed")
-
-		return nil, eerr.Wrap(err, "[userRepository.GetByQuery] rows.Err")
+			Code(eerror.ErrInternal).
+			Msg(eerror.MsgInternal).
+			Stack(tr).
+			Err()
 	}
 	return users, nil
 }
@@ -121,12 +147,17 @@ func (u *userRepository) GetPageCount(ctx context.Context, limit uint) (uint, er
 	var pageCount uint
 	err := db.QueryRow(ctx, `SELECT COUNT(*) / $1 FROM users`, limit).Scan(&pageCount)
 	if err != nil {
-		u.log.Error(ctx).
+		tr := traceUserRepository.OfName("GetPageCount").
+			OfCauseMethod("db.QueryRow").
+			OfCauseParams(etrace.FuncParams{
+				"limit": limit,
+			})
+		return 0, eerror.
 			Err(err).
-			Str("limit", fmt.Sprint(limit)).
-			Msg("get users page count query failed")
-
-		return 0, eerr.Wrap(err, "[userRepository.GetPageCount] db.QueryRow")
+			Code(eerror.ErrInternal).
+			Msg(eerror.MsgInternal).
+			Stack(tr).
+			Err()
 	}
 
 	return pageCount, nil

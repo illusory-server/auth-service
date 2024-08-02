@@ -2,9 +2,10 @@ package psqlTokenRepository
 
 import (
 	"context"
+	"github.com/OddEer0/Eer0/eerror"
 	"github.com/illusory-server/auth-service/internal/domain"
 	"github.com/illusory-server/auth-service/internal/domain/model"
-	"github.com/illusory-server/auth-service/pkg/eerr"
+	"github.com/illusory-server/auth-service/pkg/etrace"
 	"time"
 )
 
@@ -19,13 +20,17 @@ func (u *tokenRepository) Create(ctx context.Context, id domain.Id, token string
 	}
 	_, err := db.Exec(ctx, CreateQuery, id, token, resToken.UpdatedAt, resToken.CreatedAt)
 	if err != nil {
-		u.log.Error(ctx).
-			Err(err).
-			Str("id", string(id)).
-			Str("token", token).
-			Msg("failed to create token")
-
-		return nil, eerr.Wrap(err, "[tokenRepository] db.Exec")
+		tr := traceTokenRepository.OfName("Create").
+			OfCauseMethod("db.Exec").
+			OfCauseParams(etrace.FuncParams{
+				"id":    id,
+				"token": token,
+			})
+		return nil, eerror.Err(err).
+			Code(eerror.ErrInternal).
+			Stack(tr).
+			Msg(eerror.MsgInternal).
+			Err()
 	}
 
 	return resToken, nil

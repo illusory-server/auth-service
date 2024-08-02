@@ -16,13 +16,13 @@ type UserRepository interface {
 	GetPageCount(ctx context.Context, limit uint) (uint, error)
 
 	UpdateById(context.Context, *model.User) (*model.User, error)
-	UpdateRoleById(ctx context.Context, id string, role string) (*model.User, error)
-	UpdatePasswordById(ctx context.Context, id string, password string) (*model.User, error)
+	UpdateRoleById(ctx context.Context, id domain.Id, role string) (*model.User, error)
+	UpdatePasswordById(ctx context.Context, id domain.Id, password string) (*model.User, error)
 
 	DeleteById(context.Context, domain.Id) error
 
 	HasById(context.Context, domain.Id) (bool, error)
 	HasByLogin(context.Context, string) (bool, error)
 	HasByEmail(context.Context, string) (bool, error)
-	CheckUserRole(ctx context.Context, id, rol string) (bool, error)
+	CheckUserRole(ctx context.Context, id domain.Id, rol string) (bool, error)
 }

@@ -2,8 +2,9 @@ package psqlTokenRepository
 
 import (
 	"context"
+	"github.com/OddEer0/Eer0/eerror"
 	"github.com/illusory-server/auth-service/internal/domain"
-	"github.com/illusory-server/auth-service/pkg/eerr"
+	"github.com/illusory-server/auth-service/pkg/etrace"
 )
 
 func (u *tokenRepository) DeleteByValue(ctx context.Context, value string) error {
@@ -11,12 +12,16 @@ func (u *tokenRepository) DeleteByValue(ctx context.Context, value string) error
 
 	_, err := db.Exec(ctx, DeleteByValueQuery, value)
 	if err != nil {
-		u.log.Error(ctx).
-			Err(err).
-			Str("value", value).
-			Msg("failed to delete token by value")
-
-		return eerr.Wrap(err, "[tokenRepository.DeleteByValue]: db.Exec")
+		tr := traceTokenRepository.OfName("DeleteByValue").
+			OfCauseMethod("db.Exec").
+			OfCauseParams(etrace.FuncParams{
+				"value": value,
+			})
+		return eerror.Err(err).
+			Code(eerror.ErrInternal).
+			Stack(tr).
+			Msg(eerror.MsgInternal).
+			Err()
 	}
 
 	return nil
@@ -27,12 +32,16 @@ func (u *tokenRepository) DeleteById(ctx context.Context, id domain.Id) error {
 
 	_, err := db.Exec(ctx, DeleteByIdQuery, id)
 	if err != nil {
-		u.log.Error(ctx).
-			Err(err).
-			Str("id", string(id)).
-			Msg("failed to delete token by value")
-
-		return eerr.Wrap(err, "[tokenRepository.DeleteByValue]: db.Exec")
+		tr := traceTokenRepository.OfName("DeleteById").
+			OfCauseMethod("db.Exec").
+			OfCauseParams(etrace.FuncParams{
+				"id": id,
+			})
+		return eerror.Err(err).
+			Code(eerror.ErrInternal).
+			Stack(tr).
+			Msg(eerror.MsgInternal).
+			Err()
 	}
 
 	return nil

@@ -1,5 +1,7 @@
 package psqlActivateRepository
 
+import "github.com/illusory-server/auth-service/pkg/etrace"
+
 const (
 	HasByIdQuery = `
 		SELECT EXISTS(SELECT 1 FROM user_activate WHERE id = $1);
@@ -26,4 +28,11 @@ const (
 	ActivateUserByLinkQuery = `
 		UPDATE user_activate SET is_activate = true, link = NULL, updated_at = $2 WHERE link = $1;
 	`
+)
+
+var (
+	traceActivateRepository = etrace.Method{
+		Package: "psqlActivateRepository",
+		Type:    "activateRepository",
+	}
 )

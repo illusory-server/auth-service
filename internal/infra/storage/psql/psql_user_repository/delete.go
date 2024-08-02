@@ -2,8 +2,9 @@ package psqlUserRepository
 
 import (
 	"context"
+	"github.com/OddEer0/Eer0/eerror"
 	"github.com/illusory-server/auth-service/internal/domain"
-	"github.com/illusory-server/auth-service/pkg/eerr"
+	"github.com/illusory-server/auth-service/pkg/etrace"
 )
 
 func (u *userRepository) DeleteById(ctx context.Context, id domain.Id) error {
@@ -11,12 +12,17 @@ func (u *userRepository) DeleteById(ctx context.Context, id domain.Id) error {
 
 	_, err := db.Exec(ctx, DeleteByIdQuery, id)
 	if err != nil {
-		u.log.Error(ctx).
+		tr := traceUserRepository.OfName("DeleteById").
+			OfCauseMethod("db.Exec").
+			OfCauseParams(etrace.FuncParams{
+				"id": id,
+			})
+		return eerror.
 			Err(err).
-			Str("id", "id").
-			Msg("user delete error")
-
-		return eerr.Wrap(err, "[userRepository] db.Exec")
+			Code(eerror.ErrInternal).
+			Msg(eerror.MsgInternal).
+			Stack(tr).
+			Err()
 	}
 
 	return nil

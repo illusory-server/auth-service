@@ -1,5 +1,7 @@
 package psqlUserRepository
 
+import "github.com/illusory-server/auth-service/pkg/etrace"
+
 const (
 	CreateQuery = `
 		INSERT INTO users (id, login, email, role, password, updated_at, created_at)
@@ -39,4 +41,11 @@ const (
 	`
 	GetByQuerySelect = `SELECT id, login, email, role, password, updated_at, created_at FROM users `
 	GetByQueryLimit  = ` LIMIT $1 OFFSET $2;`
+)
+
+var (
+	traceUserRepository = etrace.Method{
+		Type:    "userRepository",
+		Package: "psqlUserRepository",
+	}
 )

@@ -2,8 +2,9 @@ package psqlActivateRepository
 
 import (
 	"context"
+	"github.com/OddEer0/Eer0/eerror"
 	"github.com/illusory-server/auth-service/internal/domain"
-	"github.com/illusory-server/auth-service/pkg/eerr"
+	"github.com/illusory-server/auth-service/pkg/etrace"
 )
 
 func (a *activateRepository) IsActivateById(ctx context.Context, userId domain.Id) (bool, error) {
@@ -12,12 +13,16 @@ func (a *activateRepository) IsActivateById(ctx context.Context, userId domain.I
 	var exists bool
 	err := db.QueryRow(ctx, IsActivateByIdQuery, userId).Scan(&exists)
 	if err != nil {
-		a.log.Error(ctx).
-			Err(err).
-			Str("id", string(userId)).
-			Msg("error is activate by id")
-
-		return false, eerr.Wrap(err, "[activateRepository.IsActivateById] db.QueryRow")
+		tr := traceActivateRepository.OfName("IsActivateById").
+			OfCauseMethod("db.QueryRow").
+			OfCauseParams(etrace.FuncParams{
+				"id": userId,
+			})
+		return false, eerror.Err(err).
+			Code(eerror.ErrInternal).
+			Msg(eerror.MsgInternal).
+			Stack(tr).
+			Err()
 	}
 
 	return exists, nil
@@ -29,12 +34,16 @@ func (a *activateRepository) HasById(ctx context.Context, userId domain.Id) (boo
 	var exists bool
 	err := db.QueryRow(ctx, HasByIdQuery, userId).Scan(&exists)
 	if err != nil {
-		a.log.Error(ctx).
-			Err(err).
-			Str("id", string(userId)).
-			Msg("error has by id")
-
-		return false, eerr.Wrap(err, "[activateRepository.HasById] db.QueryRow")
+		tr := traceActivateRepository.OfName("HasById").
+			OfCauseMethod("db.QueryRow").
+			OfCauseParams(etrace.FuncParams{
+				"id": userId,
+			})
+		return false, eerror.Err(err).
+			Code(eerror.ErrInternal).
+			Msg(eerror.MsgInternal).
+			Stack(tr).
+			Err()
 	}
 
 	return exists, nil

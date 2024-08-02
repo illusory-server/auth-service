@@ -2,8 +2,9 @@ package psqlBanRepository
 
 import (
 	"context"
+	"github.com/OddEer0/Eer0/eerror"
 	"github.com/illusory-server/auth-service/internal/domain"
-	"github.com/illusory-server/auth-service/pkg/eerr"
+	"github.com/illusory-server/auth-service/pkg/etrace"
 )
 
 func (b *banRepository) DeleteById(ctx context.Context, id domain.Id) error {
@@ -11,9 +12,16 @@ func (b *banRepository) DeleteById(ctx context.Context, id domain.Id) error {
 
 	_, err := db.Exec(ctx, DeleteByIdQuery, id)
 	if err != nil {
-		b.log.Error(ctx).Err(err).Str("id", string(id)).Msg("error while deleting ban by id")
-
-		return eerr.Wrap(err, "[banRepository.DeleteById] db.Exec")
+		tr := traceBanRepository.OfName("DeleteById").
+			OfCauseMethod("db.Exec").
+			OfCauseParams(etrace.FuncParams{
+				"id": id,
+			})
+		return eerror.Err(err).
+			Code(eerror.ErrInternal).
+			Msg(eerror.MsgInternal).
+			Stack(tr).
+			Err()
 	}
 
 	return nil

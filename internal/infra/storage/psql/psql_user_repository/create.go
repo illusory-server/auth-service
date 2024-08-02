@@ -2,8 +2,9 @@ package psqlUserRepository
 
 import (
 	"context"
+	"github.com/OddEer0/Eer0/eerror"
 	"github.com/illusory-server/auth-service/internal/domain/model"
-	"github.com/illusory-server/auth-service/pkg/eerr"
+	"github.com/illusory-server/auth-service/pkg/etrace"
 )
 
 func (u *userRepository) Create(ctx context.Context, user *model.User) (*model.User, error) {
@@ -21,12 +22,17 @@ func (u *userRepository) Create(ctx context.Context, user *model.User) (*model.U
 	)
 
 	if err != nil {
-		u.log.Error(ctx).
+		tr := traceUserRepository.OfName("Create").
+			OfCauseMethod("db.Exec").
+			OfParams(etrace.FuncParams{
+				"user": user,
+			})
+		return nil, eerror.
 			Err(err).
-			Interface("user", user).
-			Msg("create user failed")
-
-		return nil, eerr.Wrap(err, "[userRepository] db.Exec")
+			Code(eerror.ErrInternal).
+			Msg(eerror.MsgInternal).
+			Stack(tr).
+			Err()
 	}
 
 	return user, nil

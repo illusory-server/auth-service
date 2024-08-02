@@ -1,5 +1,7 @@
 package psqlTokenRepository
 
+import "github.com/illusory-server/auth-service/pkg/etrace"
+
 const (
 	CreateQuery = `
 		INSERT INTO jwt_tokens (id, value, updated_at, created_at)
@@ -24,4 +26,11 @@ const (
 	GetByIdQuery = `
 		SELECT id, value, updated_at, created_at FROM jwt_tokens WHERE id = $1;
 	`
+)
+
+var (
+	traceTokenRepository = etrace.Method{
+		Type:    "tokenRepository",
+		Package: "psqlTokenRepository",
+	}
 )

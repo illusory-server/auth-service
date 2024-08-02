@@ -1,5 +1,7 @@
 package psqlBanRepository
 
+import "github.com/illusory-server/auth-service/pkg/etrace"
+
 const (
 	CreateQuery = `
 		INSERT INTO user_ban (id, is_banned, ban_reason, updated_at, created_at)
@@ -25,4 +27,11 @@ const (
 		UPDATE user_ban SET is_banned = false, ban_reason = NULL, updated_at = $2 WHERE id = $1
 		RETURNING id, is_banned, ban_reason, updated_at, created_at;
 	`
+)
+
+var (
+	traceBanRepository = etrace.Method{
+		Package: "psqlBanRepository",
+		Type:    "banRepository",
+	}
 )

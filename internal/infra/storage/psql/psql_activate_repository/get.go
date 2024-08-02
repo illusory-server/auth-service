@@ -2,9 +2,10 @@ package psqlActivateRepository
 
 import (
 	"context"
+	"github.com/OddEer0/Eer0/eerror"
 	"github.com/illusory-server/auth-service/internal/domain"
 	"github.com/illusory-server/auth-service/internal/domain/model"
-	"github.com/illusory-server/auth-service/pkg/eerr"
+	"github.com/illusory-server/auth-service/pkg/etrace"
 )
 
 func (a *activateRepository) GetByUserId(ctx context.Context, userId domain.Id) (*model.Activate, error) {
@@ -19,12 +20,16 @@ func (a *activateRepository) GetByUserId(ctx context.Context, userId domain.Id) 
 		&activate.CreatedAt,
 	)
 	if err != nil {
-		a.log.Error(ctx).
-			Err(err).
-			Str("userId", string(userId)).
-			Msg("cannot get activate by id")
-
-		return nil, eerr.Wrap(err, "[activateRepository.GetByUserId] db.QueryRow")
+		tr := traceActivateRepository.OfName("GetByUserId").
+			OfCauseMethod("db.Exec").
+			OfCauseParams(etrace.FuncParams{
+				"id": userId,
+			})
+		return nil, eerror.Err(err).
+			Code(eerror.ErrInternal).
+			Msg(eerror.MsgInternal).
+			Stack(tr).
+			Err()
 	}
 
 	return activate, nil

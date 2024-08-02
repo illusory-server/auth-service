@@ -2,9 +2,10 @@ package psqlTokenRepository
 
 import (
 	"context"
+	"github.com/OddEer0/Eer0/eerror"
 	"github.com/illusory-server/auth-service/internal/domain"
 	"github.com/illusory-server/auth-service/internal/domain/model"
-	"github.com/illusory-server/auth-service/pkg/eerr"
+	"github.com/illusory-server/auth-service/pkg/etrace"
 )
 
 func (u *tokenRepository) Save(ctx context.Context, id domain.Id, token string) (*model.Token, error) {
@@ -15,25 +16,29 @@ func (u *tokenRepository) Save(ctx context.Context, id domain.Id, token string) 
 	if !has {
 		res, err := u.Create(ctx, id, token)
 		if err != nil {
-			u.log.Error(ctx).
-				Err(err).
-				Str("token", token).
-				Str("id", string(id)).
-				Msg("error creating token")
-
-			return nil, eerr.Wrap(err, "[tokenRepository.Save] Create")
+			tr := traceTokenRepository.OfName("Save").
+				OfCauseMethod("Create").
+				OfCauseParams(etrace.FuncParams{
+					"id":    id,
+					"token": token,
+				})
+			return nil, eerror.Err(err).
+				Stack(tr).
+				Err()
 		}
 		return res, nil
 	}
 	res, err := u.UpdateById(ctx, id, token)
 	if err != nil {
-		u.log.Error(ctx).
-			Err(err).
-			Str("token", token).
-			Str("id", string(id)).
-			Msg("error updating token")
-
-		return nil, eerr.Wrap(err, "[tokenRepository.Save] UpdateById")
+		tr := traceTokenRepository.OfName("Save").
+			OfCauseMethod("UpdateById").
+			OfCauseParams(etrace.FuncParams{
+				"id":    id,
+				"token": token,
+			})
+		return nil, eerror.Err(err).
+			Stack(tr).
+			Err()
 	}
 	return res, nil
 }

@@ -2,8 +2,10 @@ package psqlUserRepository
 
 import (
 	"context"
+	"github.com/OddEer0/Eer0/eerror"
+	"github.com/illusory-server/auth-service/internal/domain"
 	"github.com/illusory-server/auth-service/internal/domain/model"
-	"github.com/illusory-server/auth-service/pkg/eerr"
+	"github.com/illusory-server/auth-service/pkg/etrace"
 	"time"
 )
 
@@ -12,17 +14,20 @@ func (u *userRepository) UpdateById(ctx context.Context, user *model.User) (*mod
 
 	_, err := db.Exec(ctx, UpdateByIdQuery, user.Id, user.Login, user.Email, user.Role, time.Now())
 	if err != nil {
-		u.log.Error(ctx).
+		return nil, eerror.
 			Err(err).
-			Interface("user", user).
-			Msg("update user failed")
-
-		return nil, eerr.Wrap(err, "[userRepository.UpdateById] db.Exec")
+			Code(eerror.ErrInternal).
+			Msg(eerror.MsgInternal).
+			Stack(traceUserRepository.
+				OfName("UpdateById").
+				OfCauseMethod("db.Exec"),
+			).
+			Err()
 	}
 	return user, nil
 }
 
-func (u *userRepository) UpdateRoleById(ctx context.Context, id string, role string) (*model.User, error) {
+func (u *userRepository) UpdateRoleById(ctx context.Context, id domain.Id, role string) (*model.User, error) {
 	db := u.getQuery(ctx)
 	user := &model.User{}
 	err := db.QueryRow(ctx, UpdateRoleByIdQuery, id, role, time.Now()).Scan(
@@ -35,18 +40,23 @@ func (u *userRepository) UpdateRoleById(ctx context.Context, id string, role str
 		&user.CreatedAt,
 	)
 	if err != nil {
-		u.log.Error(ctx).
-			Err(err).
-			Str("id", id).
-			Str("role", role).
-			Msg("update user failed")
-
-		return nil, eerr.Wrap(err, "[userRepository.UpdateRoleById] db.QueryRow")
+		return nil, eerror.Err(err).
+			Code(eerror.ErrInternal).
+			Msg(eerror.MsgInternal).
+			Stack(traceUserRepository.
+				OfName("UpdateRoleById").
+				OfCauseMethod("db.Exec").
+				OfCauseParams(etrace.FuncParams{
+					"id":   id,
+					"role": role,
+				}),
+			).
+			Err()
 	}
 	return user, nil
 }
 
-func (u *userRepository) UpdatePasswordById(ctx context.Context, id string, password string) (*model.User, error) {
+func (u *userRepository) UpdatePasswordById(ctx context.Context, id domain.Id, password string) (*model.User, error) {
 	db := u.getQuery(ctx)
 	user := &model.User{}
 	err := db.QueryRow(ctx, UpdatePasswordByIdQuery, id, password, time.Now()).Scan(
@@ -59,13 +69,20 @@ func (u *userRepository) UpdatePasswordById(ctx context.Context, id string, pass
 		&user.CreatedAt,
 	)
 	if err != nil {
-		u.log.Error(ctx).
+		return nil, eerror.
 			Err(err).
-			Str("id", id).
-			Str("role", password).
-			Msg("update user failed")
-
-		return nil, eerr.Wrap(err, "[userRepository.UpdatePasswordById] db.QueryRow")
+			Code(eerror.ErrInternal).
+			Stack(
+				traceUserRepository.
+					OfName("UpdatePasswordById").
+					OfCauseMethod("db.Exec").
+					OfCauseParams(etrace.FuncParams{
+						"id":       id,
+						"password": password,
+					}),
+			).
+			Msg(eerror.MsgInternal).
+			Err()
 	}
 	return user, nil
 }

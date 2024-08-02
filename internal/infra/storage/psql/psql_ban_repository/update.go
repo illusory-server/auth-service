@@ -2,9 +2,10 @@ package psqlBanRepository
 
 import (
 	"context"
+	"github.com/OddEer0/Eer0/eerror"
 	"github.com/illusory-server/auth-service/internal/domain"
 	"github.com/illusory-server/auth-service/internal/domain/model"
-	"github.com/illusory-server/auth-service/pkg/eerr"
+	"github.com/illusory-server/auth-service/pkg/etrace"
 	"time"
 )
 
@@ -20,9 +21,17 @@ func (b *banRepository) BanById(ctx context.Context, id domain.Id, reason string
 		&ban.CreatedAt,
 	)
 	if err != nil {
-		b.log.Error(ctx).Err(err).Str("id", string(id)).Str("reason", reason).Msg("cannot ban user")
-
-		return nil, eerr.Wrap(err, "[banRepository.BanById] db.QueryRow")
+		tr := traceBanRepository.OfName("BanById").
+			OfCauseMethod("db.QueryRow").
+			OfCauseParams(etrace.FuncParams{
+				"id":     id,
+				"reason": reason,
+			})
+		return nil, eerror.Err(err).
+			Code(eerror.ErrInternal).
+			Msg(eerror.MsgInternal).
+			Stack(tr).
+			Err()
 	}
 
 	return ban, nil
@@ -40,9 +49,16 @@ func (b *banRepository) UnbanById(ctx context.Context, id domain.Id) (*model.Ban
 		&ban.CreatedAt,
 	)
 	if err != nil {
-		b.log.Error(ctx).Err(err).Str("id", string(id)).Msg("cannot unban user")
-
-		return nil, eerr.Wrap(err, "[banRepository.UnbanById] db.QueryRow")
+		tr := traceBanRepository.OfName("UnbanById").
+			OfCauseMethod("db.QueryRow").
+			OfCauseParams(etrace.FuncParams{
+				"id": id,
+			})
+		return nil, eerror.Err(err).
+			Code(eerror.ErrInternal).
+			Msg(eerror.MsgInternal).
+			Stack(tr).
+			Err()
 	}
 
 	return ban, nil

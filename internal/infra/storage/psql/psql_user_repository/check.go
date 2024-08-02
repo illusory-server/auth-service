@@ -2,8 +2,9 @@ package psqlUserRepository
 
 import (
 	"context"
+	"github.com/OddEer0/Eer0/eerror"
 	"github.com/illusory-server/auth-service/internal/domain"
-	"github.com/illusory-server/auth-service/pkg/eerr"
+	"github.com/illusory-server/auth-service/pkg/etrace"
 )
 
 func (u *userRepository) HasById(ctx context.Context, id domain.Id) (bool, error) {
@@ -12,12 +13,17 @@ func (u *userRepository) HasById(ctx context.Context, id domain.Id) (bool, error
 
 	err := db.QueryRow(ctx, HasByIdQuery, id).Scan(&exists)
 	if err != nil {
-		u.log.Error(ctx).
+		tr := traceUserRepository.OfName("HasById").
+			OfCauseMethod("db.QueryRow").
+			OfCauseParams(etrace.FuncParams{
+				"id": id,
+			})
+		return false, eerror.
 			Err(err).
-			Str("id", string(id)).
-			Msg("has by id query failure")
-
-		return false, eerr.Wrap(err, "[userRepository.HasById] db.QueryRow")
+			Code(eerror.ErrInternal).
+			Msg(eerror.MsgInternal).
+			Stack(tr).
+			Err()
 	}
 
 	return exists, nil
@@ -29,12 +35,17 @@ func (u *userRepository) HasByLogin(ctx context.Context, login string) (bool, er
 
 	err := db.QueryRow(ctx, HasByLoginQuery, login).Scan(&exists)
 	if err != nil {
-		u.log.Error(ctx).
+		tr := traceUserRepository.OfName("HasByLogin").
+			OfCauseMethod("db.QueryRow").
+			OfCauseParams(etrace.FuncParams{
+				"login": login,
+			})
+		return false, eerror.
 			Err(err).
-			Str("login", login).
-			Msg("has by login query failure")
-
-		return false, eerr.Wrap(err, "[userRepository.HasByLogin] db.QueryRow")
+			Code(eerror.ErrInternal).
+			Msg(eerror.MsgInternal).
+			Stack(tr).
+			Err()
 	}
 
 	return exists, nil
@@ -46,30 +57,40 @@ func (u *userRepository) HasByEmail(ctx context.Context, email string) (bool, er
 
 	err := db.QueryRow(ctx, HasByEmailQuery, email).Scan(&exists)
 	if err != nil {
-		u.log.Error(ctx).
+		tr := traceUserRepository.OfName("HasByEmail").
+			OfCauseMethod("db.QueryRow").
+			OfCauseParams(etrace.FuncParams{
+				"email": email,
+			})
+		return false, eerror.
 			Err(err).
-			Str("email", email).
-			Msg("has by email query failure")
-
-		return false, eerr.Wrap(err, "[userRepository.HasByEmail] db.QueryRow")
+			Code(eerror.ErrInternal).
+			Msg(eerror.MsgInternal).
+			Stack(tr).
+			Err()
 	}
 
 	return exists, nil
 }
 
-func (u *userRepository) CheckUserRole(ctx context.Context, id, role string) (bool, error) {
+func (u *userRepository) CheckUserRole(ctx context.Context, id domain.Id, role string) (bool, error) {
 	db := u.getQuery(ctx)
 	var check bool
 
 	err := db.QueryRow(ctx, CheckUserRoleQuery, id, role).Scan(&check)
 	if err != nil {
-		u.log.Error(ctx).
+		tr := traceUserRepository.OfName("CheckUserRole").
+			OfCauseMethod("db.QueryRow").
+			OfCauseParams(etrace.FuncParams{
+				"id":   id,
+				"role": role,
+			})
+		return false, eerror.
 			Err(err).
-			Str("id", id).
-			Str("role", role).
-			Msg("check user role failure")
-
-		return false, eerr.Wrap(err, "[userRepository.CheckUserRole] db.QueryRow")
+			Code(eerror.ErrInternal).
+			Msg(eerror.MsgInternal).
+			Stack(tr).
+			Err()
 	}
 
 	return check, nil
