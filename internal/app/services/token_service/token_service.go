@@ -7,6 +7,7 @@ import (
 	"github.com/illusory-server/auth-service/internal/domain"
 	"github.com/illusory-server/auth-service/internal/domain/repository"
 	"github.com/illusory-server/auth-service/internal/infra/config"
+	"github.com/illusory-server/auth-service/pkg/etrace"
 )
 
 type (
@@ -30,6 +31,13 @@ type (
 		log             domain.Logger
 		cfg             *config.Config
 		tokenRepository repository.TokenRepository
+	}
+)
+
+var (
+	traceTokenService = etrace.Method{
+		Package: "tokenService",
+		Type:    "tokenService",
 	}
 )
 

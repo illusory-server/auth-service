@@ -2,8 +2,9 @@ package tokenService
 
 import (
 	"context"
+	"github.com/OddEer0/Eer0/eerror"
 	"github.com/golang-jwt/jwt"
-	"github.com/illusory-server/auth-service/pkg/eerr"
+	"github.com/illusory-server/auth-service/pkg/etrace"
 	"github.com/pkg/errors"
 )
 
@@ -14,26 +15,38 @@ func (s *service) ValidateAccessToken(ctx context.Context, accessToken string) (
 	})
 	if err != nil {
 		var jwtErr *jwt.ValidationError
+		tr := traceTokenService.OfName("ValidateAccessToken").
+			OfCauseMethod("jwt.ParseWithClaims").
+			OfCauseParams(etrace.FuncParams{
+				"access_token": accessToken,
+			})
 		if errors.As(err, &jwtErr) {
-			return nil, eerr.Wrap(jwtErrHandle(ctx, jwtErr, s.log, accessToken), "[service.ValidateRefreshToken] jwt.ParseWithClaims")
+			return nil, jwtErrHandle(ctx, jwtErr, s.log, accessToken, tr)
 		}
-		s.log.Error(ctx).
-			Err(err).
-			Str("access_token", accessToken).
-			Msg("parse refresh token failed")
-		return nil, eerr.Wrap(err, "[service.ValidateRefreshToken] jwt.ParseWithClaims")
+		return nil, eerror.Err(err).Code(eerror.ErrInternal).Msg(eerror.MsgInternal).Stack(tr).Err()
 	}
 	if !token.Valid {
-		s.log.Error(ctx).
-			Str("access_token", accessToken).
-			Msg("invalid token")
-		return nil, eerr.New(eerr.ErrUnauthorized, eerr.MsgUnauthorized)
+		tr := traceTokenService.OfName("ValidateAccessToken").
+			OfCauseMethod("token.Valid").
+			OfCauseParams(etrace.FuncParams{
+				"access_token": accessToken,
+			})
+		return nil, eerror.Err(err).Code(eerror.ErrUnauthorized).Msg(eerror.MsgUnauthorized).Stack(tr).Err()
 	}
 	claim, ok := token.Claims.(*CustomClaims)
 	if !ok {
 		s.log.Error(ctx).
 			Str("access_token", accessToken).
 			Msg("invalid token")
+		tr := traceTokenService.OfName("ValidateAccessToken").
+			OfCauseFunc("type assertion").
+			OfCauseParams(etrace.FuncParams{
+				"from_value": token.Claims,
+				"to_type":    "CustomClaims",
+			})
+		return nil, eerror.New("invalid type assertion").
+			Code(eerror.ErrInternal).
+			Stack(tr).Err()
 	}
 	return &claim.JwtUserData, nil
 }
