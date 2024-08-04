@@ -2,8 +2,8 @@ package psql
 
 import (
 	"context"
+	"github.com/OddEer0/Eer0/eerror"
 	"github.com/illusory-server/auth-service/internal/domain"
-	"github.com/illusory-server/auth-service/pkg/eerr"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -16,7 +16,7 @@ func PingUnaryInterceptor(pool *pgxpool.Pool, log domain.Logger) grpc.UnaryServe
 		err := pool.Ping(ctx)
 		if err != nil {
 			log.Error(ctx).Msg("ping to pg failed")
-			return nil, status.Error(codes.Internal, eerr.MsgInternal)
+			return nil, status.Error(codes.Internal, eerror.MsgInternal)
 		}
 		return handler(ctx, req)
 	}

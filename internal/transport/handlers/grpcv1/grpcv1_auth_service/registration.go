@@ -2,19 +2,28 @@ package grpcv1AuthService
 
 import (
 	"context"
+	"github.com/OddEer0/Eer0/eerror"
 	authv1 "github.com/illusory-server/auth-service/gen/auth"
 	appDto "github.com/illusory-server/auth-service/internal/app/app_dto"
-	errorgrpc "github.com/illusory-server/auth-service/internal/transport/errors/error_grpc"
+	"github.com/illusory-server/auth-service/pkg/etrace"
 )
 
 func (a *AuthServiceServer) Registration(ctx context.Context, data *authv1.RegistrationRequest) (*authv1.AuthResponse, error) {
-	authRes, err := a.authUseCase.Registration(ctx, &appDto.CreateUser{
+	createData := &appDto.CreateUser{
 		Login:    data.Login,
 		Password: data.Password,
 		Email:    data.Email,
-	})
+	}
+	authRes, err := a.authUseCase.Registration(ctx, createData)
 	if err != nil {
-		return nil, errorgrpc.Catch(err)
+		tr := traceAuthService.OfName("Refresh").
+			OfCauseMethod("authUseCase.Registration").
+			OfCauseParams(etrace.FuncParams{
+				"data": createData,
+			})
+		return nil, eerror.Err(err).
+			Stack(tr).
+			Err()
 	}
 
 	return authMapper.AuthResultToAuthResponse(authRes), nil

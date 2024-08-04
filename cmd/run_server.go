@@ -19,8 +19,16 @@ func RunServer(ctx context.Context, app *app.App, errCh chan<- error) {
 		errCh <- err
 		return
 	}
+
+	// interceptor init
 	grpcServer := grpc.NewServer(
-		grpc.ChainUnaryInterceptor(interceptors.RequestMetricsInterceptor, psql.PingUnaryInterceptor(app.PSQL, app.Logger), logger.LoggingInterceptor(app.Logger)),
+		grpc.ChainUnaryInterceptor(
+			interceptors.Tracing,
+			interceptors.RequestMetricsInterceptor,
+			psql.PingUnaryInterceptor(app.PSQL, app.Logger),
+			interceptors.EerrorInterceptor(app.Logger),
+			logger.LoggingInterceptor(app.Logger),
+		),
 	)
 
 	txController := psql.PgxTransactionController{}
