@@ -2,12 +2,13 @@ package authUseCase
 
 import (
 	"context"
+	"github.com/OddEer0/Eer0/eerror"
 	appDto "github.com/illusory-server/auth-service/internal/app/app_dto"
 	tokenService "github.com/illusory-server/auth-service/internal/app/services/token_service"
 	"github.com/illusory-server/auth-service/internal/domain"
 	"github.com/illusory-server/auth-service/internal/domain/constants"
 	"github.com/illusory-server/auth-service/internal/domain/model"
-	"github.com/illusory-server/auth-service/pkg/eerr"
+	"github.com/illusory-server/auth-service/pkg/etrace"
 	"github.com/rs/xid"
 	"golang.org/x/crypto/bcrypt"
 	"time"
@@ -16,29 +17,39 @@ import (
 func (u *useCase) Registration(ctx context.Context, data *appDto.CreateUser) (*AuthResult, error) {
 	candidate, err := u.userRepository.HasByLogin(ctx, data.Login)
 	if err != nil {
-		u.log.Error(ctx).
-			Err(err).
-			Str("login", data.Login).
-			Msg("error has user candidate by login")
-
-		return nil, eerr.Wrap(err, "[useCase.registration] userRepository.HasByLogin")
+		tr := traceUseCase.OfName("Registration").
+			OfCauseFunc("userRepository.HasByLogin").
+			OfCauseParams(etrace.FuncParams{
+				"login": data.Login,
+			})
+		return nil, eerror.Err(err).
+			Stack(tr).
+			Err()
 	}
 	if candidate {
-		u.log.Warn(ctx).
-			Str("login", data.Login).
-			Msg("user candidate by login")
-
-		return nil, eerr.New(eerr.ErrConflict, "user login exist")
+		tr := traceUseCase.OfName("Registration").
+			OfCauseFunc("userRepository.HasByLogin").
+			OfCauseParams(etrace.FuncParams{
+				"login": data.Login,
+			})
+		return nil, eerror.New(eerror.MsgNotFound).
+			Code(eerror.ErrNotFound).
+			Stack(tr).
+			Err()
 	}
 
 	hashPassword, err := bcrypt.GenerateFromPassword([]byte(data.Password), bcrypt.DefaultCost)
 	if err != nil {
-		u.log.Error(ctx).
-			Err(err).
-			Str("password", data.Password).
-			Msg("failed to hash password")
-
-		return nil, eerr.New(eerr.ErrInternal, "failed to hash password")
+		tr := traceUseCase.OfName("Registration").
+			OfCauseFunc("bcrypt.GenerateFromPassword").
+			OfCauseParams(etrace.FuncParams{
+				"password": data.Password,
+			})
+		return nil, eerror.Err(err).
+			Code(eerror.ErrInternal).
+			Msg(eerror.MsgInternal).
+			Stack(tr).
+			Err()
 	}
 
 	pureUser := &appDto.PureUser{}
@@ -56,7 +67,14 @@ func (u *useCase) Registration(ctx context.Context, data *appDto.CreateUser) (*A
 			CreatedAt: now,
 		})
 		if err != nil {
-			return eerr.Wrap(err, "[useCase.Registration] userRepository.Create")
+			tr := traceUseCase.OfName("Registration").
+				OfCauseFunc("userRepository.Create").
+				OfCauseParams(etrace.FuncParams{
+					"user": user,
+				})
+			return eerror.Err(err).
+				Stack(tr).
+				Err()
 		}
 		ban, err := u.banRepository.Create(txCtx, &model.Ban{
 			Id:        id,
@@ -66,25 +84,56 @@ func (u *useCase) Registration(ctx context.Context, data *appDto.CreateUser) (*A
 			CreatedAt: now,
 		})
 		if err != nil {
-			return eerr.Wrap(err, "[useCase.Registration] banRepository.Create")
+			tr := traceUseCase.OfName("Registration").
+				OfCauseFunc("banRepository.Create").
+				OfCauseParams(etrace.FuncParams{
+					"ban": ban,
+				})
+			return eerror.Err(err).
+				Stack(tr).
+				Err()
 		}
+		// TODO - Продумать создание ссылок
 		link := xid.New().String() + ".ru"
 		_, err = u.activateRepository.Create(txCtx, id, link)
 		if err != nil {
-			return eerr.Wrap(err, "[useCase.Registration] activateRepository.Create")
+			tr := traceUseCase.OfName("Registration").
+				OfCauseFunc("banRepository.Create").
+				OfCauseParams(etrace.FuncParams{
+					"ban": ban,
+				})
+			return eerror.Err(err).
+				Stack(tr).
+				Err()
 		}
 
-		tokensGen, err := u.tokenService.Generate(txCtx, tokenService.JwtUserData{
+		jwtData := tokenService.JwtUserData{
 			Id:   pureUser.Id,
 			Role: pureUser.Role,
-		})
+		}
+		tokensGen, err := u.tokenService.Generate(txCtx, jwtData)
 		if err != nil {
-			return eerr.Wrap(err, "[useCase.Registration] tokenService.Generate")
+			tr := traceUseCase.OfName("Registration").
+				OfCauseFunc("tokenService.Generate").
+				OfCauseParams(etrace.FuncParams{
+					"jwt_data": jwtData,
+				})
+			return eerror.Err(err).
+				Stack(tr).
+				Err()
 		}
 
 		_, err = u.tokenRepository.Save(txCtx, user.Id, tokensGen.RefreshToken)
 		if err != nil {
-			return eerr.Wrap(err, "[useCase.Registration] tokenRepository.Save")
+			tr := traceUseCase.OfName("Registration").
+				OfCauseFunc("tokenRepository.Save").
+				OfCauseParams(etrace.FuncParams{
+					"id":    user.Id,
+					"token": tokensGen.RefreshToken,
+				})
+			return eerror.Err(err).
+				Stack(tr).
+				Err()
 		}
 
 		tokens.AccessToken = tokensGen.AccessToken
@@ -102,11 +151,6 @@ func (u *useCase) Registration(ctx context.Context, data *appDto.CreateUser) (*A
 	})
 
 	if err != nil {
-		u.log.Error(ctx).
-			Err(err).
-			Interface("create_user_data", data).
-			Msg("error in create user transaction")
-
 		return nil, err
 	}
 

@@ -2,11 +2,12 @@ package authUseCase
 
 import (
 	"context"
+	"github.com/OddEer0/Eer0/eerror"
 	appDto "github.com/illusory-server/auth-service/internal/app/app_dto"
 	appMapper "github.com/illusory-server/auth-service/internal/app/app_mapper"
 	tokenService "github.com/illusory-server/auth-service/internal/app/services/token_service"
 	"github.com/illusory-server/auth-service/internal/domain/model"
-	"github.com/illusory-server/auth-service/pkg/eerr"
+	"github.com/illusory-server/auth-service/pkg/etrace"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -15,30 +16,38 @@ const LoginOrPasswordIncorrect = "incorrect login or password"
 func (u *useCase) Login(ctx context.Context, data *appDto.LoginData) (*AuthResult, error) {
 	has, err := u.userRepository.HasByLogin(ctx, data.Login)
 	if err != nil {
-		u.log.Error(ctx).
-			Err(err).
-			Str("login", data.Login).
-			Msg("failed to check if user exists")
-
-		return nil, eerr.Wrap(err, "[useCase.Login] userRepository.HasByLogin")
+		tr := traceUseCase.OfName("Login").
+			OfCauseMethod("userRepository.HasByLogin").
+			OfCauseParams(etrace.FuncParams{
+				"login": data.Login,
+			})
+		return nil, eerror.Err(err).
+			Stack(tr).
+			Err()
 	}
 	if !has {
-		u.log.Warn(ctx).
-			Err(err).
-			Str("login", data.Login).
-			Msg("failed to check if user exists")
-
-		return nil, eerr.New(eerr.ErrForbidden, LoginOrPasswordIncorrect)
+		tr := traceUseCase.OfName("Login").
+			OfCauseMethod("userRepository.HasByLogin").
+			OfCauseParams(etrace.FuncParams{
+				"login": data.Login,
+			})
+		return nil, eerror.Err(err).
+			Code(eerror.ErrForbidden).
+			Msg(LoginOrPasswordIncorrect).
+			Stack(tr).
+			Err()
 	}
 
 	userDb, err := u.userRepository.GetByLogin(ctx, data.Login)
 	if err != nil {
-		u.log.Error(ctx).
-			Err(err).
-			Str("login", data.Login).
-			Msg("failed get user by login")
-
-		return nil, eerr.Wrap(err, "[useCase.Login] userRepository.GetByLogin")
+		tr := traceUseCase.OfName("Login").
+			OfCauseMethod("userRepository.GetByLogin").
+			OfCauseParams(etrace.FuncParams{
+				"login": data.Login,
+			})
+		return nil, eerror.Err(err).
+			Stack(tr).
+			Err()
 	}
 	isEqualPassword := bcrypt.CompareHashAndPassword([]byte(userDb.Password), []byte(data.Password))
 	if isEqualPassword != nil {
@@ -46,28 +55,39 @@ func (u *useCase) Login(ctx context.Context, data *appDto.LoginData) (*AuthResul
 			Err(err).
 			Str("password", data.Password).
 			Msg("compare password error")
-
-		return nil, eerr.New(eerr.ErrForbidden, LoginOrPasswordIncorrect)
+		tr := traceUseCase.OfName("Login").
+			OfCauseMethod("bcrypt.CompareHashAndPassword").
+			OfCauseParams(etrace.FuncParams{
+				"password": data.Password,
+			})
+		return nil, eerror.Err(err).
+			Code(eerror.ErrForbidden).
+			Msg(LoginOrPasswordIncorrect).
+			Stack(tr).
+			Err()
 	}
-	tokens, err := u.tokenService.Generate(ctx, tokenService.JwtUserData{Id: userDb.Id, Role: userDb.Role})
+	jwtData := tokenService.JwtUserData{Id: userDb.Id, Role: userDb.Role}
+	tokens, err := u.tokenService.Generate(ctx, jwtData)
 	if err != nil {
-		u.log.Error(ctx).
-			Err(err).
-			Str("id", string(userDb.Id)).
-			Str("token", tokens.RefreshToken).
-			Msg("cannot generate tokens")
-
-		return nil, eerr.Wrap(err, "[useCase.Login] tokenService.Generate")
+		tr := traceUseCase.OfName("Login").
+			OfCauseMethod("tokenService.Generate").
+			OfCauseParams(etrace.FuncParams{
+				"jwt_data": jwtData,
+			})
+		return nil, eerror.Err(err).
+			Stack(tr).
+			Err()
 	}
 	_, err = u.tokenRepository.Save(ctx, userDb.Id, tokens.RefreshToken)
 	if err != nil {
-		u.log.Error(ctx).
-			Err(err).
-			Str("id", string(userDb.Id)).
-			Str("token", tokens.RefreshToken).
-			Msg("cannot save tokens")
-
-		return nil, eerr.Wrap(err, "[useCase.Login] tokenRepository.Save")
+		tr := traceUseCase.OfName("Login").
+			OfCauseMethod("tokenRepository.Save").
+			OfCauseParams(etrace.FuncParams{
+				"jwt_data": jwtData,
+			})
+		return nil, eerror.Err(err).
+			Stack(tr).
+			Err()
 	}
 
 	mapper := &appMapper.UserMapper{}

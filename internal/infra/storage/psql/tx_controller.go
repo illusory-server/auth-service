@@ -2,9 +2,10 @@ package psql
 
 import (
 	"context"
+	"github.com/OddEer0/Eer0/eerror"
 	"github.com/illusory-server/auth-service/internal/domain"
 	"github.com/illusory-server/auth-service/internal/domain/sql"
-	"github.com/illusory-server/auth-service/pkg/eerr"
+	"github.com/illusory-server/auth-service/pkg/etrace"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -12,6 +13,14 @@ type TransactionKey string
 
 const (
 	PgxTransactionKey TransactionKey = "pgx_transaction_key"
+)
+
+var (
+	traceTransaction = etrace.Method{
+		Package: "psql",
+		Type:    "PgxTransaction",
+		Name:    "WithinTransaction",
+	}
 )
 
 type PgxTransaction struct {
@@ -36,38 +45,52 @@ func (t PgxTransactionController) ExtractTransaction(ctx context.Context) sql.Qu
 func (p *PgxTransaction) WithinTransaction(ctx context.Context, callback func(context.Context) error) error {
 	tx, err := p.Conn.Begin(ctx)
 	if err != nil {
-		p.Log.Error(ctx).
-			Msg("starting psql transaction failed")
-
-		return eerr.Wrap(err, "[PgxTransaction.WithinTransaction] Conn.Begin")
+		p.Log.Debug(ctx).Msg("starting psql transaction failed")
+		tr := traceTransaction.OfCauseMethod("Conn.Begin")
+		return eerror.Err(err).
+			Code(eerror.ErrInternal).
+			Msg(eerror.MsgInternal).
+			Stack(tr).
+			Err()
 	}
 
 	err = callback(p.TxController.InjectTransaction(ctx, tx))
 	if err != nil {
 		errLoc := tx.Rollback(ctx)
 		if errLoc != nil {
-			p.Log.Error(ctx).
-				Msg("rolling back psql transaction failed")
-			return eerr.Wrap(err, "[PgxTransaction.WithinTransaction] tx.Rollback(1)")
+			p.Log.Debug(ctx).Msg("rolling back psql transaction failed")
+			tr := traceTransaction.OfCauseMethod("tx.Rollback(1)")
+			return eerror.Err(errLoc).
+				Code(eerror.ErrInternal).
+				Msg(eerror.MsgInternal).
+				Stack(tr).
+				Err()
 		}
-		p.Log.Info(ctx).
-			Msg("rolling back psql transaction")
-		return eerr.Wrap(err, "[PgxTransaction.WithinTransaction] callback")
+		tr := traceTransaction.OfCauseMethod("callback")
+		p.Log.Debug(ctx).Msg("rolling back psql transaction")
+		return eerror.Err(err).
+			Stack(tr).
+			Err()
 	}
 
 	err = tx.Commit(ctx)
 	if err != nil {
-		err := tx.Rollback(ctx)
-		if err != nil {
-			p.Log.Error(ctx).
-				Msg("rolling back psql transaction failed")
-			return eerr.Wrap(err, "[PgxTransaction.WithinTransaction] tx.Rollback(2)")
+		errLoc := tx.Rollback(ctx)
+		if errLoc != nil {
+			p.Log.Debug(ctx).Msg("rolling back psql transaction failed")
+			tr := traceTransaction.OfCauseMethod("tx.Rollback(2)")
+			return eerror.Err(errLoc).
+				Code(eerror.ErrInternal).
+				Msg(eerror.MsgInternal).
+				Stack(tr).
+				Err()
 		}
-		p.Log.Error(ctx).
-			Msg("commit psql transaction failed")
-		return err
+		p.Log.Debug(ctx).Msg("commit psql transaction failed")
+		tr := traceTransaction.OfCauseMethod("tx.Commit")
+		return eerror.Err(err).
+			Stack(tr).
+			Err()
 	}
-	p.Log.Info(ctx).
-		Msg("commit psql transaction succeeded")
+	p.Log.Debug(ctx).Msg("commit psql transaction succeeded")
 	return nil
 }

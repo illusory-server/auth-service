@@ -7,6 +7,7 @@ import (
 	"github.com/illusory-server/auth-service/internal/domain"
 	"github.com/illusory-server/auth-service/internal/domain/repository"
 	"github.com/illusory-server/auth-service/internal/domain/sql"
+	"github.com/illusory-server/auth-service/pkg/etrace"
 )
 
 type (
@@ -31,6 +32,13 @@ type (
 		activateRepository repository.ActivateRepository
 		banRepository      repository.BanRepository
 		tx                 sql.Transactor
+	}
+)
+
+var (
+	traceUseCase = etrace.Method{
+		Package: "authUseCase",
+		Type:    "authUseCase",
 	}
 )
 
